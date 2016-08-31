@@ -1,6 +1,6 @@
 # vasputils
 
-
+VASP utility
 
 Table of Contents
 -----------------
