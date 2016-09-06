@@ -4,6 +4,7 @@ import re
 
 import numpy
 
+
 def read_array(f, n=1, dtype=float, ndmin=1):
     ''' read n lines from file f and convert these lines to numpy.array.
     '''
@@ -12,6 +13,7 @@ def read_array(f, n=1, dtype=float, ndmin=1):
         buf.write(f.readline())
     buf.seek(0)
     return numpy.loadtxt(buf, dtype=dtype, ndmin=ndmin)
+
 
 class Element(object):
     table = {
@@ -55,6 +57,7 @@ class Element(object):
         'Br': (35, 0.94, 'A62929'),
         'Kr': (36, 0.88, '5CB8D1'),
     }
+
     def __init__(self, symbol):
         if symbol in self.table:
             number, radius, color = self.table[symbol]
@@ -65,6 +68,7 @@ class Element(object):
         self.number = number
         self.radius = radius
         self.color = color
+
 
 class Atom(object):
     def __init__(self, name):
@@ -153,15 +157,18 @@ class Contcar(Basecar):
 class Poscar(Contcar):
     pass
 
+
 def read_sequence(f, counts, columns=5):
     data = read_array(f, n=counts / columns).flatten()
     if counts % columns != 0:
         data = numpy.append(data, read_array(f))
     return data
 
+
 class Chg(Contcar):
     columns = 10
     chg_fmt = '% .5E'
+
     def __init__(self, *args, **kwargs):
         super(Chg, self).__init__(*args, **kwargs)
 
@@ -174,7 +181,7 @@ class Chg(Contcar):
 
     def _parse_charge(self, f):
 
-        f.readline() # skip a blank line
+        f.readline()  # skip a blank line
         self._read_charge(f)
 
         try:
@@ -192,13 +199,12 @@ class Chg(Contcar):
         charge = charge.reshape(self.dimension)
         self.charges.append(charge)
 
-
     def write(self, f, direct=True):
         Contcar.write(self, f, direct=direct)
 
         f.write('\n')
         numpy.savetxt(f, [self.dimension], fmt='   %d')
-        
+
         charge = self.charges[0].flatten()
         columns = self.columns
         row = (charge.size / columns)
@@ -206,9 +212,11 @@ class Chg(Contcar):
         numpy.savetxt(f, data, fmt=self.chg_fmt)
         numpy.savetxt(f, [charge[row * columns:]], fmt=self.chg_fmt)
 
+
 class Chgcar(Chg):
     columns = 5
     chg_fmt = '% .11E'
+
     def _read_aug(self, f):
         pattern = re.compile(r'^augmentation occupancies\s+(?P<atom_number>\d+)\s+(?P<data_count>\d+)$')
         for i in range(self.atom_counts()):
@@ -219,11 +227,11 @@ class Chgcar(Chg):
                 if data_count:
                     augmentation_occupancy = read_sequence(f, data_count)
                 else:
-                    f.readline() # skip a blank line
+                    f.readline()  # skip a blank line
 
     def _parse_charge(self, f):
 
-        f.readline() # skip a blank line
+        f.readline()  # skip a blank line
         self._read_charge(f)
         self._read_aug(f)
 
@@ -233,7 +241,3 @@ class Chgcar(Chg):
             self._read_aug(f)
         except StopIteration:
             pass
-
-
-
-
