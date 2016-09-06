@@ -17,6 +17,12 @@ vasputils requires the following to run:
 
   * python 2.7
 
+Installation
+-----
+
+```sh
+pip install git+git://github.com/akiraakaishi/vasputils.git
+```
 
 Usage
 -----
