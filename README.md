@@ -16,6 +16,7 @@ Requirements
 vasputils requires the following to run:
 
   * python 2.7
+  * numpy
 
 Installation
 -----
