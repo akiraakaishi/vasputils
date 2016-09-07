@@ -300,7 +300,21 @@ class Array(Entry):
 
         self.dtype = dtype
 
-        self.data = collections.OrderedDict()
+        self.set = collections.OrderedDict()
+        self._data = None
+
+    @property
+    def data(self):
+        if self._data is not None:
+            return self._data
+
+        def _get_data(s):
+            if isinstance(s, dict):
+                return [_get_data(d) for d in s.itervalues()]
+            return s
+
+        self._data = _get_data(self.set)[0]
+        return self._data
 
     @classmethod
     def _instantiate(cls, element):
@@ -325,24 +339,24 @@ class Array(Entry):
 
         types = [dtype[1] for dtype in ins.dtype]
 
-        def get_data(elem, data):
+        def _extract_set(elem, set):
             if elem.tag in ('r', 'rc'):
                 if elem.tag == 'r':
                     text = elem.text.strip()
-                    raw_data = filter(None, text.split(' '))
+                    raw_set = filter(None, text.split(' '))
                 else:
-                    raw_data = [c.text.strip() for c in elem.iter('c')]
-                d = [t(raw_datum) for t, raw_datum in zip(types, raw_data)]
+                    raw_set = [c.text.strip() for c in elem.iter('c')]
+                d = [t(raw_datum) for t, raw_datum in zip(types, raw_set)]
 
-                index = len(data)
-                data[index] = d
+                index = len(set)
+                set[index] = d
             elif elem.tag == 'set':
                 comment = elem.get('comment', None)
-                data[comment] = collections.OrderedDict()
+                set[comment] = collections.OrderedDict()
                 for e in elem:
-                    get_data(e, data[comment])
+                    _extract_set(e, set[comment])
 
-        get_data(element.find('set'), ins.data)
+        _extract_set(element.find('set'), ins.set)
 
         return ins
 

@@ -78,15 +78,15 @@ class RangeType(object):
 
         if len(split) > 2:
             raise argparse.ArgumentTypeError('invalid expression.')
-        if len(split) == 1:
-            start = split[0]
-            end = start
-        else:
-            start, end = split
 
         try:
-            start = self.type(start) if start else None
-            end = self.type(end) if end else None
+            if len(split) == 1:
+                start = self.type(split[0])
+                end = start + 1
+            else:
+                start, end = split
+                start = self.type(start) if start else None
+                end = self.type(end) if end else None
         except ValueError as e:
             raise argparse.ArgumentTypeError('invalid expression: ' + e.message)
         return start, end
@@ -103,7 +103,10 @@ class VasprunCommand(BaseCommand):
 
         eigenval_parser = subparser.add_parser('eigenval')
         eigenval_parser.add_argument('--energy', type=energy_type, default=(None, None), help="energy range separated by ':'. ")
-        eigenval_parser.add_argument('--band', type=band_type, default=(None, None), help="band numbers separated by ':'. (ommitted if energy range is given.)")
+        eigenval_parser.add_argument('--band', type=band_type, default=(None, None), help="band numbers separated by ':'. (ommitted if energy range is specified.)")
+
+        dos_parser = subparser.add_parser('dos')
+        dos_parser.add_argument('--integrate', action='store_true', default=False, help='')
 
     def process_arguments(self):
         f = self.args.file
@@ -116,6 +119,21 @@ class VasprunCommand(BaseCommand):
 
         if self.args.command == 'eigenval':
             self.process_eigenval(modeling)
+        elif self.args.command == 'dos':
+            self.process_dos(modeling)
+
+    def process_dos(self, modeling):
+        calculation = modeling.calculations[-1]
+        dos = calculation.dos
+
+        total = numpy.array(dos.total.data)
+        energy = total[0].take(0, axis=1) - dos.efermi
+        energy = energy.reshape((energy.shape[0], 1))
+
+        index = 2 if self.args.integrate else 1
+        data = total.swapaxes(0, 2).take(index, axis=0)
+        d = numpy.hstack((energy, data))
+        numpy.savetxt(sys.stdout, d)
 
     def process_eigenval(self, modeling):
         kpoints = numpy.array(modeling.kpoints.kpointlist)
@@ -126,8 +144,7 @@ class VasprunCommand(BaseCommand):
         calculation = modeling.calculations[-1]
         efermi = calculation.dos.efermi
 
-        data = calculation.eigenvalues.array.data[None]
-        data = [[list(dd.itervalues()) for dd in d.itervalues()] for d in data.itervalues()]
+        data = calculation.eigenvalues.array.data
         data = numpy.array(data).swapaxes(0, 2)
 
         bands = data.take(0, axis=3) - efermi
