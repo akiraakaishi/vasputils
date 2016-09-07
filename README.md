@@ -29,7 +29,7 @@ Usage
 -----
 
 ```sh
-vasprun --eigenval -f vasprun.xml > eigen.data
+vasprun  --file somewhere/vasprun.xml eigenval --energy=-3.0:3.0
 ```
 
 
