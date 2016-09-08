@@ -1,6 +1,6 @@
 # vasputils
 
-VASP utility
+Pre-and-Post processing tools for Vienna Ab initio Simulation Package (VASP)
 
 Table of Contents
 -----------------
@@ -29,7 +29,9 @@ Usage
 -----
 
 ```sh
-vasprun  --file somewhere/vasprun.xml eigenval --energy=-3.0:3.0
+chg_split ./CHG
+vasprun dos
+vasprun --file somewhere/vasprun.xml eigenval --energy=-3.0:3.0
 ```
 
 
