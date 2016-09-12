@@ -84,6 +84,11 @@ class BaseEntry(object):
         return ins
 
     @classmethod
+    def from_string(cls, string):
+        element = ElementTree.fromstring(string)
+        return cls.from_element(element)
+
+    @classmethod
     def _instantiate(cls, element):
         return cls()
 
@@ -200,6 +205,8 @@ class Vector(TypedEntry):
     >>> vector = Vector(' 1  2 ', type_='int')
     >>> vector.value
     [1, 2]
+    >>> Vector.from_string('<v>0.1 0.2</v>').value
+    [0.1, 0.2]
     """
 
     tag = 'v'
@@ -226,9 +233,7 @@ class Time(Vector):
 class VectorArray(Entry):
     """
 
-    >>> array = VectorArray()
-    >>> array.add(Vector('0.0 0.1'))
-    >>> array.add(Vector('0.4 0.3'))
+    >>> array = VectorArray.from_string('<varray><v>0.0 0.1</v><v>0.4 0.3</v></varray>')
     >>> array.value
     [[0.0, 0.1], [0.4, 0.3]]
     """
@@ -403,6 +408,13 @@ class Energy(MultipleEntry):
 
 
 class Section(collections.OrderedDict):
+    """
+
+    >>> section = Section()
+    >>> section.add_entry(None)
+    >>> section.entries
+    [None]
+    """
     def __init__(self, *args, **kwargs):
         super(Section, self).__init__(*args, **kwargs)
         self.entries = []
@@ -419,6 +431,7 @@ class Parameters(MultipleEntry):
     >>> param.add(Item(name='nested', value='value'), directory='/sub dir')
     >>> param.get('bar')
     'foo'
+    >>> param = Parameters.from_string('<parameters><section name="some section"><i name="bar">0.0</i></section></parameters>')
     """
 
     entry_tags = ('i', 'v', )

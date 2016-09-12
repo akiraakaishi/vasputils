@@ -11,16 +11,16 @@ from vasputils.vasprun import from_file
 
 class BaseCommand(object):
     def __init__(self):
+        self.parser = argparse.ArgumentParser()
+        self.add_arguments()
+
         self.args = None
 
     def add_arguments(self):
         raise NotImplementedError
 
-    def __call__(self):
-        self.parser = argparse.ArgumentParser()
-        self.add_arguments()
-
-        self.args = self.parser.parse_args()
+    def __call__(self, *args, **kwargs):
+        self.args = self.parser.parse_args(*args, **kwargs)
         self.process_arguments()
 
     def process_arguments(self):
