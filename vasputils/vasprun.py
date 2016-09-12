@@ -7,17 +7,6 @@ class VaspParseError(Exception):
     pass
 
 
-def divide_line(line, sep=' '):
-    squeezed = re.sub(r'\s+', sep, line)
-    stripped = squeezed.strip()
-    return stripped.split(sep)
-
-
-def fromstring(raw_value, dtype=float, sep=' '):
-    values = divide_line(raw_value, sep=sep)
-    return map(dtype, values)
-
-
 def from_element(element):
     """
 
@@ -223,7 +212,11 @@ class Vector(TypedEntry):
         dtype = float
         if self.type == 'int':
             dtype = int
-        return fromstring(self.raw_value, dtype=dtype, sep=' ')
+        sep = ' '
+        squeezed = re.sub(r'\s+', sep, self.raw_value)
+        stripped = squeezed.strip()
+        values = stripped.split(sep)
+        return map(dtype, values)
 
 
 class Time(Vector):
@@ -270,14 +263,6 @@ class VectorArray(Entry):
 class Array(Entry):
     """
     >>> array = Array(['spin', 'kpoint', 'band'], ['eigene', ('occ', float)])
-    >>> array.append_row([0, 0, 0], [ -22.3301,    1.0000])
-    >>> array.append_row([0, 0, 1], [ -22.3013,    1.0000])
-    >>> print array.get_data([0, 0, 0])
-    [[-22.3301, 1.0]]
-    >>> array.set_comment([0, 0, 0, 0], 'some comment')
-    Traceback (most recent call last):
-      ...
-    ValueError: invalid indexing
     """
 
     tag = 'array'
@@ -432,10 +417,6 @@ class Parameters(MultipleEntry):
     >>> param = Parameters()
     >>> param.add(Item(name='bar', value='foo'))
     >>> param.add(Item(name='nested', value='value'), directory='/sub dir')
-    >>> param.root.get_itemset().get('bar')
-    'foo'
-    >>> param.root.get_child('sub dir').get_itemset().get('nested')
-    'value'
     >>> param.get('bar')
     'foo'
     """

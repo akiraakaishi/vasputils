@@ -95,6 +95,13 @@ class Basecar(object):
         ins._parse(f)
         return ins
 
+    @classmethod
+    def parse_string(cls, s):
+        buf = StringIO.StringIO()
+        buf.write(s)
+        buf.seek(0)
+        return cls.parse(buf)
+
     def _parse(self, f):
         raise NotImplemented
 
