@@ -1,7 +1,48 @@
+import os
+import sys
+from contextlib import contextmanager
+from cStringIO import StringIO
+
 import argparse
 import unittest
 
-from vasputils.commands import RangeType
+from vasputils.commands import RangeType, vasprun
+
+
+@contextmanager
+def capture(command, *args, **kwargs):
+  out, sys.stdout = sys.stdout, StringIO()
+  try:
+    command(*args, **kwargs)
+    sys.stdout.seek(0)
+    yield sys.stdout.read()
+  finally:
+    sys.stdout = out
+
+
+
+class VasprunTest(unittest.TestCase):
+    def setUp(self):
+        self.vasprun_01_filename = os.path.join(os.path.dirname(__file__), 'vasprun', 'fixtures', 'vasprun_01.xml')
+        self.file_arg = '--file={}'.format(self.vasprun_01_filename)
+
+    def vasprun(self, args):
+        try:
+            vasprun(args)
+        except SystemExit as e:
+            assert e.code == 0
+
+    def test_dos(self):
+        args = (self.file_arg, 'dos')
+        self.vasprun(args)
+
+    def test_eigenval(self):
+        args = (self.file_arg, 'eigenval')
+        self.vasprun(args)
+        args = (self.file_arg, 'eigenval', '--band=-5:5')
+        self.vasprun(args)
+        args = (self.file_arg, 'eigenval', '--energy=-5.0:5.0')
+        self.vasprun(args)
 
 
 class RangeTypeTest(unittest.TestCase):
