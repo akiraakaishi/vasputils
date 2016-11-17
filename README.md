@@ -39,5 +39,5 @@ vasprun --file somewhere/vasprun.xml eigenval --energy=-3.0:3.0
 License
 -------
 
-Paddington is licensed under the [MIT](#) license.  
+vasputils is licensed under the [MIT](#) license.  
 Copyright &copy; 2016, Akira Akaishi
