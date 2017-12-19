@@ -188,7 +188,6 @@ class Chg(Contcar):
 
     def _parse_charge(self, f):
 
-        f.readline()  # skip a blank line
         self._read_charge(f)
 
         try:
@@ -196,9 +195,16 @@ class Chg(Contcar):
         except StopIteration:
             pass
 
-    def _read_charge(self, f):
+    def _read_dimension(self, f):
         dimension = read_array(f, dtype=int)
+        # dimension may be an empty line. if so, try the next line for dimension parsing.
+        if dimension.shape[0] == 0:
+            dimension = read_array(f, dtype=int)
+
         self.dimension = tuple(dimension.tolist())
+
+    def _read_charge(self, f):
+        self._read_dimension(f)
 
         counts = reduce(operator.mul, self.dimension)
         charge = read_sequence(f, counts, columns=self.columns)
@@ -238,7 +244,6 @@ class Chgcar(Chg):
 
     def _parse_charge(self, f):
 
-        f.readline()  # skip a blank line
         self._read_charge(f)
         self._read_aug(f)
 
